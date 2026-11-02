@@ -5,11 +5,14 @@ import Drawer from '@mui/material/Drawer';
 import IconButton from '@mui/material/IconButton';
 import Logo from '../common/Logo';
 import Button from '../common/Button';
-import { registrationPath, ROLES } from '../../constants/routes';
+import { ROLE_HOME, registrationPath, ROLES } from '../../constants/routes';
+import { useAuthStore } from '../../features/auth/store/authStore';
 
 const links = [{ to: '/', label: 'Home' }, { to: '/explore', label: 'Explore' }, { to: '/#how-it-works', label: 'How it works' }, { to: '/#travel-partners', label: 'For travel planners' }, { to: '/about', label: 'About' }];
 
 export default function Header({ account }) {
+  const role = useAuthStore(state => state.role);
+  if (role && !account) account = <Button to={ROLE_HOME[role]} arrow>My account</Button>;
   const [open, setOpen] = useState(false);
   const { pathname, hash } = useLocation();
   const nav = (mobile = false) => <nav aria-label={mobile ? 'Mobile navigation' : 'Main navigation'} className={mobile ? 'mobile-nav' : 'desktop-nav'}>{links.map(({ to, label }) => <NavLink key={to} to={to} onClick={() => setOpen(false)} className={pathname + hash === to ? 'nav-link active' : 'nav-link'}>{label}</NavLink>)}</nav>;

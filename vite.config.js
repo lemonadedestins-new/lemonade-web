@@ -5,6 +5,16 @@ export default defineConfig({
   plugins: [react()],
   server: { port: 5173, strictPort: true },
   preview: { port: 4173, strictPort: true },
-  build: { sourcemap: false },
-  test: { environment: 'node', include: ['src/**/*.test.js'], clearMocks: true },
+  build: {
+    sourcemap: false,
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes('/node_modules/@mui/') || id.includes('/node_modules/@emotion/')) return 'ui-vendor';
+          if (/(?:^|[/\\])node_modules[/\\](?:react|react-dom|react-is|scheduler)[/\\]/.test(id)) return 'react-vendor';
+          if (id.includes('/node_modules/lucide-react/')) return 'icons';
+        },
+      },
+    },
+  },
 });

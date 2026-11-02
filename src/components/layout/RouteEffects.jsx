@@ -8,7 +8,7 @@ export default function RouteEffects() {
     document.title = `${titles[pathname] || 'Page not found'} · Lemonade Destinations`;
     const frame = requestAnimationFrame(() => {
       if (hash) document.getElementById(hash.slice(1))?.scrollIntoView({ behavior: 'smooth' });
-      else window.scrollTo({ top: 0, behavior: 'instant' });
+      else window.scrollTo(0, 0);
     });
     return () => cancelAnimationFrame(frame);
   }, [pathname, hash]);

@@ -7,6 +7,8 @@ import { ChevronDown } from 'lucide-react';
 import Button from '../../../components/common/Button';
 import { registrationPath } from '../../../constants/routes';
 import { apiConfig } from '../../../api/config';
+import '../home.css';
+import '../sections.css';
 
 const pages = {
   about: { eyebrow: 'OUR STORY', title: 'Good journeys start with good people.', intro: 'Lemonade Destinations brings travelers and travel planners together. We believe a great trip starts with someone understanding what matters to you.', sections: [['Your journey, thoughtfully connected', 'Tell us the kind of experience you’re looking for. Our platform is being built to connect you with relevant travel planners, so you can explore tailored options and choose your fit.'], ['A place for expertise', 'Independent planners and travel agencies bring local knowledge, thoughtful itineraries, and a personal touch. Lemonade is the connection between their expertise and your next adventure.'], ['A beginning, with room to grow', 'This first release introduces our destinations and account experience. Trip requests, planner matching, and quotations will follow.']] },
