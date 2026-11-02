@@ -15,6 +15,7 @@ import {
 import Button from '../../../components/common/Button';
 import { registrationPath, ROLES } from '../../../constants/routes';
 import { destinations, imageUrl } from '../data/destinations';
+import { usePlanTripPath } from '../../../hooks/usePlanTripPath';
 
 const steps = [
   { icon: MessageSquareText, title: 'Tell us your travel dreams', text: 'The where, the when, and the little things that matter to you.' },
@@ -38,6 +39,7 @@ const stories = [
 ];
 
 export function HowItWorks() {
+  const planPath = usePlanTripPath();
   return (
     <section className="section how-section" id="how-it-works">
       <div className="container">
@@ -55,7 +57,7 @@ export function HowItWorks() {
             </li>
           ))}
         </ol>
-        <div className="centered"><Button to={registrationPath()} arrow>Let’s plan something wonderful</Button></div>
+        <div className="centered"><Button to={planPath} arrow>Let’s plan something wonderful</Button></div>
       </div>
     </section>
   );
@@ -136,11 +138,12 @@ export function Testimonials() {
 }
 
 export function FinalCta() {
+  const planPath = usePlanTripPath();
   return (
     <section className="final-cta">
       <div className="container">
         <div><p className="eyebrow">THAT “SOMEDAY” TRIP?</p><h2>Let’s make it a little more real.</h2></div>
-        <Button to={registrationPath()} variant="primary">Find your next adventure <Sparkles size={17} /></Button>
+        <Button to={planPath} variant="primary">Find your next adventure <Sparkles size={17} /></Button>
       </div>
     </section>
   );

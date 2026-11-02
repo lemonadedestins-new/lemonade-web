@@ -42,3 +42,8 @@ button:disabled { cursor: wait; }
 @media (max-width: 768px) { .container { width: calc(100% - 40px); } .section { padding-block: 60px; } .section-heading { align-items: flex-start; } }
 @media (max-width: 480px) { .container { width: calc(100% - 32px); } .section-heading { flex-direction: column; gap: 20px; } }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; scroll-behavior: auto !important; } html { scroll-behavior: auto; } }
+
+.brand { display: inline-flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.brand-symbol { width: 42px; height: 42px; display: grid; place-items: center; background: var(--color-lemon); border-radius: 50%; color: var(--color-forest); transform: rotate(-18deg); }
+.brand-wordmark { font-family: 'Manrope', sans-serif; font-size: 1.55rem; font-weight: 800; letter-spacing: -.07em; line-height: 1.2; }
+.brand-wordmark > span { display: block; text-align: center; font-family: 'DM Sans', sans-serif; font-size: .56rem; font-weight: 600; letter-spacing: .32em; margin-top: 4px; }

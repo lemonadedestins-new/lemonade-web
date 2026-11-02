@@ -1,5 +1,10 @@
 import { AxiosError } from 'axios';
 import { ROLES } from '../../constants/routes';
+import { createTripRepository, TripRequestError } from './tripRepository';
+import { createSampleTrips } from './tripSeed';
+import { ACCOMMODATIONS, TRANSPORT } from '../../constants/trips';
+
+const trips = createTripRepository(createSampleTrips());
 
 // Deliberately ephemeral: mock accounts, password digests, and sessions reset on reload.
 // This is a simulation, never a production identity store or authorization boundary.
@@ -66,8 +71,41 @@ export async function mockAdapter(config) {
   if (path === '/auth/me' && config.method === 'get') {
     const userId = tokens.get(String(config.headers.Authorization || '').replace('Bearer ', ''));
     const account = [...accounts.values()].find(item => item.user.id === userId);
-    if (!account || !currentUserId) return fail(config, 401, 'SESSION_EXPIRED');
+    if (!account || userId !== currentUserId) return fail(config, 401, 'SESSION_EXPIRED');
     return response(config, { user: { ...account.user } });
+  }
+  if (path.startsWith('/customer/')) {
+    const userId = tokens.get(String(config.headers.Authorization || '').replace('Bearer ', ''));
+    const account = [...accounts.values()].find(item => item.user.id === userId);
+    if (!account || userId !== currentUserId) return fail(config, 401, 'SESSION_EXPIRED');
+    if (account.user.role !== ROLES.CUSTOMER) return fail(config, 403, 'FORBIDDEN');
+    if (path === '/customer/profile' && config.method === 'patch') {
+      const name = String(data.name || '').trim();
+      const homeCity = String(data.homeCity || '').trim();
+      if (name.length < 2 || name.length > 80 || homeCity.length > 100) return fail(config, 422, 'INVALID_INPUT');
+      account.user = { ...account.user, name, homeCity };
+      return response(config, { user: { ...account.user } });
+    }
+    if (path === '/customer/preferences' && config.method === 'patch') {
+      if (!ACCOMMODATIONS.includes(data.accommodation) || !TRANSPORT.includes(data.transportation)) return fail(config, 422, 'INVALID_INPUT');
+      account.user = { ...account.user, preferences: { accommodation: data.accommodation, transportation: data.transportation } };
+      return response(config, { user: { ...account.user } });
+    }
+  }
+  if (path.startsWith('/trips')) {
+    const userId = tokens.get(String(config.headers.Authorization || '').replace('Bearer ', ''));
+    const user = [...accounts.values()].find(item => item.user.id === userId)?.user;
+    if (!user || user.id !== currentUserId) return fail(config, 401, 'SESSION_EXPIRED');
+    try {
+      if (path === '/trips' && config.method === 'get') return response(config, { trips: trips.list(user) });
+      if (path === '/trips' && config.method === 'post') return response(config, { trip: trips.save(user, data) }, 201);
+      const match = path.match(/^\/trips\/([^/]+)$/);
+      if (match && config.method === 'get') return response(config, { trip: trips.get(user, decodeURIComponent(match[1])) });
+      if (match && config.method === 'patch') return response(config, { trip: trips.save(user, data, decodeURIComponent(match[1])) });
+    } catch (error) {
+      if (!(error instanceof TripRequestError)) throw error;
+      throw new AxiosError('Request failed', AxiosError.ERR_BAD_REQUEST, config, {}, response(config, { code: error.code, fields: error.fields }, error.status));
+    }
   }
   return fail(config, 404, 'NOT_FOUND');
 }

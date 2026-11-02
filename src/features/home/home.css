@@ -1,9 +1,5 @@
 .site-header { height: 100px; border-bottom: 1px solid #e7eadf; background: var(--color-paper); }
 .header-inner { height: 100%; display: flex; align-items: center; justify-content: space-between; gap: 24px; }
-.brand { display: inline-flex; align-items: center; gap: 8px; flex-shrink: 0; }
-.brand-symbol { width: 42px; height: 42px; display: grid; place-items: center; background: var(--color-lemon); border-radius: 50%; color: var(--color-forest); transform: rotate(-18deg); }
-.brand-wordmark { font-family: 'Manrope', sans-serif; font-size: 1.55rem; font-weight: 800; letter-spacing: -.07em; line-height: 1.2; }
-.brand-wordmark > span { display: block; text-align: center; font-family: 'DM Sans', sans-serif; font-size: .56rem; font-weight: 600; letter-spacing: .32em; margin-top: 4px; }
 .desktop-nav { display: flex; align-items: center; gap: 28px; }
 .nav-link { font-size: .825rem; font-weight: 500; color: #636f65; padding: 12px 0; position: relative; }
 .nav-link:hover, .nav-link.active { color: var(--color-forest); }

@@ -5,7 +5,8 @@ export function getErrorMessage(error) {
   const { status, data } = error.response;
   if (status === 401) return data?.code === 'INVALID_CREDENTIALS' ? 'The email or password doesn’t match. Please try again.' : 'Your session has ended. Please log in again.';
   if (status === 403) return 'This account doesn’t have access to that page.';
-  if (status === 409) return 'An account already uses this email. Try logging in instead.';
+  if (status === 404) return 'We couldn’t find this trip. It may be unavailable or belong to a different account.';
+  if (status === 409) return data?.code === 'EMAIL_EXISTS' ? 'An account already uses this email. Try logging in instead.' : 'This request has already been submitted and can no longer be edited.';
   if (status === 429) return 'There have been too many attempts. Please wait a moment and try again.';
   if (status === 400 || status === 422) return 'Some details need another look. Check the form and try again.';
   return 'Something went wrong on our side. Please try again in a moment.';

@@ -5,7 +5,7 @@ const titles = { '/': 'Travel your way', '/explore': 'Explore destinations', '/l
 export default function RouteEffects() {
   const { pathname, hash } = useLocation();
   useEffect(() => {
-    document.title = `${titles[pathname] || 'Page not found'} · Lemonade Destinations`;
+    document.title = `${titles[pathname] || (pathname === '/customer/trips/new' ? 'Plan a trip' : pathname.endsWith('/edit') ? 'Edit your draft' : pathname.startsWith('/customer/trips/') ? 'Your trip' : pathname === '/customer/trips' ? 'My trips' : pathname === '/customer/profile' ? 'My profile' : pathname === '/customer/settings' ? 'Preferences' : 'Page not found')} · Lemonade Destinations`;
     const frame = requestAnimationFrame(() => {
       if (hash) document.getElementById(hash.slice(1))?.scrollIntoView({ behavior: 'smooth' });
       else window.scrollTo(0, 0);
