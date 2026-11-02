@@ -1,0 +1,3 @@
+export const emailRules = { required: 'Please enter your email address.', pattern: { value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/, message: 'Enter a valid email address.' }, maxLength: { value: 254, message: 'Please use a shorter email address.' }, setValueAs: value => value.trim() };
+export const passwordRules = { required: 'Please enter a password.', minLength: { value: 8, message: 'Use at least 8 characters.' }, maxLength: { value: 128, message: 'Use no more than 128 characters.' } };
+export const nameRules = { required: 'Please enter your name.', validate: value => value.trim().length >= 2 || 'Please enter at least 2 characters.', maxLength: { value: 80, message: 'Use no more than 80 characters.' }, setValueAs: value => value.trim() };

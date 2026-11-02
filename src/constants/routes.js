@@ -1,0 +1,5 @@
+export const ROLES = Object.freeze({ CUSTOMER: 'CUSTOMER', BUSINESS_OWNER: 'BUSINESS_OWNER', ADMIN: 'ADMIN' });
+export const ROUTES = Object.freeze({ HOME: '/', EXPLORE: '/explore', LOGIN: '/login', REGISTER: '/register', FORGOT_PASSWORD: '/forgot-password', CUSTOMER: '/customer/dashboard', PARTNER: '/partner/dashboard', ABOUT: '/about', CONTACT: '/contact', PRIVACY: '/privacy', TERMS: '/terms' });
+export const ROLE_HOME = { [ROLES.CUSTOMER]: ROUTES.CUSTOMER, [ROLES.BUSINESS_OWNER]: ROUTES.PARTNER, [ROLES.ADMIN]: '/' };
+export const ROLE_LABELS = { [ROLES.CUSTOMER]: 'Traveler', [ROLES.BUSINESS_OWNER]: 'Travel planner', [ROLES.ADMIN]: 'Administrator' };
+export const registrationPath = (role = ROLES.CUSTOMER, destination) => `${ROUTES.REGISTER}?${new URLSearchParams({ role, ...(destination ? { destination } : {}) })}`;
