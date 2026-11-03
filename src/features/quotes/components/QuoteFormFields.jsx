@@ -1,0 +1,23 @@
+import TextField from '@mui/material/TextField';
+import IconButton from '@mui/material/IconButton';
+import { Plus, Trash2 } from 'lucide-react';
+import Button from '../../../components/common/Button';
+import { dateInput } from '../../trips/tripModel';
+
+export function QuoteField({ name, label, register, errors, helperText, ...props }) {
+  const { ref, ...field } = register(name);
+  const error = name.split('.').reduce((value, part) => value?.[part], errors);
+  return <TextField id={`quote-${name}`} fullWidth label={label} {...field} inputRef={ref} error={!!error} helperText={error?.message || helperText} {...props} />;
+}
+export function PackageFields({ register, errors }) {
+  const props = { register, errors };
+  return <div className="trip-form-fields"><QuoteField {...props} name="title" label="Package title" required placeholder="A title that captures the journey" slotProps={{ htmlInput: { maxLength: 120 } }} /><QuoteField {...props} name="price" label="Total package price (₹ INR)" type="number" required helperText="Total for the entire travel party, including applicable taxes." slotProps={{ htmlInput: { min: 1, max: 10000000, step: 1 } }} /><QuoteField {...props} name="accommodation" label="Hotel & accommodation details" required multiline minRows={3} helperText="Include hotel category, room type, location, and number of nights." slotProps={{ htmlInput: { maxLength: 2000 } }} /><QuoteField {...props} name="transportation" label="Transportation" required multiline minRows={2} placeholder="Airport pickup, private transfers, vehicle type…" slotProps={{ htmlInput: { maxLength: 1000 } }} /><QuoteField {...props} name="meals" label="Meals" required placeholder="Breakfast daily, dinner on 2 nights…" slotProps={{ htmlInput: { maxLength: 1000 } }} /><QuoteField {...props} name="activities" label="Activities & experiences" required multiline minRows={3} placeholder="The experiences that make this trip special" slotProps={{ htmlInput: { maxLength: 1500 } }} /></div>;
+}
+export function ItineraryFields({ register, errors, fields, addDay, removeDay, busy }) {
+  const props = { register, errors };
+  return <div className="trip-form-fields"><div className="form-two-columns"><QuoteField {...props} name="days" label="Number of days" type="number" slotProps={{ input: { readOnly: true } }} helperText="Updated when you add or remove itinerary days." /><QuoteField {...props} name="nights" label="Number of nights" type="number" required slotProps={{ htmlInput: { min: 0, max: 29 } }} helperText="Use one fewer night than days." /></div>{errors.itinerary?.message && <p role="alert" className="field-error">{errors.itinerary.message}</p>}<div className="itinerary-editor">{fields.map((field, index) => <section className="itinerary-day" key={field.id}><div className="itinerary-day-heading"><span>DAY {String(index + 1).padStart(2, '0')}</span><IconButton aria-label={`Remove day ${index + 1}`} disabled={fields.length <= 1 || busy} onClick={() => removeDay(index)}><Trash2 size={17} /></IconButton></div><QuoteField {...props} name={`itinerary.${index}.title`} label={`Day ${index + 1} title`} required slotProps={{ htmlInput: { maxLength: 120 } }} /><QuoteField {...props} name={`itinerary.${index}.description`} label="The plan for the day" required multiline minRows={3} slotProps={{ htmlInput: { maxLength: 2000 } }} /></section>)}</div><Button variant="outline" disabled={fields.length >= 30 || busy} onClick={addDay}><Plus size={17} /> Add itinerary day</Button><p className="panel-footnote">Up to 30 days. Include arrivals, transfers, free time, and departures so the traveler knows what to expect.</p></div>;
+}
+export function QuoteDetailFields({ register, errors, tripStart }) {
+  const props = { register, errors };
+  return <div className="trip-form-fields"><div className="form-two-columns"><QuoteField {...props} name="inclusions" label="What’s included" required multiline minRows={5} helperText="One item per line." /><QuoteField {...props} name="exclusions" label="What’s not included" required multiline minRows={5} helperText="One item per line. Write “None” if needed." /></div><QuoteField {...props} name="validUntil" label="Proposal valid until" type="date" required slotProps={{ inputLabel: { shrink: true }, htmlInput: { min: dateInput(), max: tripStart } }} helperText="Choose a date on or before the trip starts." /><QuoteField {...props} name="terms" label="Terms & cancellation policy" required multiline minRows={4} helperText="Explain availability, payment expectations, and cancellation terms." slotProps={{ htmlInput: { maxLength: 3000 } }} /><QuoteField {...props} name="notes" label="Additional notes (optional)" multiline minRows={3} slotProps={{ htmlInput: { maxLength: 2000 } }} /></div>;
+}

@@ -3,8 +3,10 @@ import { ROLES } from '../../constants/routes';
 import { createTripRepository, TripRequestError } from './tripRepository';
 import { createSampleTrips } from './tripSeed';
 import { ACCOMMODATIONS, TRANSPORT } from '../../constants/trips';
+import { createPartnerSeeds } from './partnerSeed';
+import { normalizePartnerProfile, validatePartnerProfile, validatePartnerSettings } from '../../features/partner/partnerModel';
 
-const trips = createTripRepository(createSampleTrips());
+const trips = createTripRepository([...createSampleTrips(), ...createPartnerSeeds()], { defaultPartnerIds: ['demo-partner'] });
 
 // Deliberately ephemeral: mock accounts, password digests, and sessions reset on reload.
 // This is a simulation, never a production identity store or authorization boundary.
@@ -22,7 +24,7 @@ async function addAccount(user, password) {
 async function seed() {
   if (!seedPromise) seedPromise = Promise.all([
     addAccount({ id: 'demo-customer', name: 'Alex Morgan', email: 'customer@lemonade.demo', role: ROLES.CUSTOMER }, 'TravelDemo1!'),
-    addAccount({ id: 'demo-partner', name: 'Maya Sharma', email: 'partner@lemonade.demo', role: ROLES.BUSINESS_OWNER }, 'TravelDemo1!'),
+    addAccount({ id: 'demo-partner', name: 'Maya Sharma', businessName: 'Valley & Beyond', city: 'Srinagar', specialties: 'Kashmir, Kerala & island escapes', description: 'Thoughtful journeys, local connections, and room to explore at your own pace.', email: 'partner@lemonade.demo', role: ROLES.BUSINESS_OWNER, partnerSettings: { validityDays: 7, defaultTerms: 'Availability is subject to confirmation. Please request cancellation terms before booking.' } }, 'TravelDemo1!'),
   ]);
   return seedPromise;
 }
@@ -90,6 +92,46 @@ export async function mockAdapter(config) {
       if (!ACCOMMODATIONS.includes(data.accommodation) || !TRANSPORT.includes(data.transportation)) return fail(config, 422, 'INVALID_INPUT');
       account.user = { ...account.user, preferences: { accommodation: data.accommodation, transportation: data.transportation } };
       return response(config, { user: { ...account.user } });
+    }
+  }
+  if (path.startsWith('/partner/')) {
+    const userId = tokens.get(String(config.headers.Authorization || '').replace('Bearer ', ''));
+    const account = [...accounts.values()].find(item => item.user.id === userId);
+    if (!account || userId !== currentUserId) return fail(config, 401, 'SESSION_EXPIRED');
+    if (account.user.role !== ROLES.BUSINESS_OWNER) return fail(config, 403, 'FORBIDDEN');
+    const user = account.user;
+    try {
+      if (path === '/partner/profile' && config.method === 'patch') {
+        const values = normalizePartnerProfile(data);
+        const fields = validatePartnerProfile(values);
+        if (Object.keys(fields).length) throw new TripRequestError(422, 'INVALID_INPUT', fields);
+        account.user = { ...user, ...values };
+        return response(config, { user: { ...account.user } });
+      }
+      if (path === '/partner/settings' && config.method === 'patch') {
+        const values = { validityDays: Number(data.validityDays), defaultTerms: String(data.defaultTerms || '').trim() };
+        const fields = validatePartnerSettings(values);
+        if (Object.keys(fields).length) throw new TripRequestError(422, 'INVALID_INPUT', fields);
+        account.user = { ...user, partnerSettings: values };
+        return response(config, { user: { ...account.user } });
+      }
+      if (path === '/partner/leads' && config.method === 'get') return response(config, { leads: trips.partner.listLeads(user) });
+      if (path === '/partner/quotes' && config.method === 'get') return response(config, { quotes: trips.partner.listQuotes(user) });
+      const lead = path.match(/^\/partner\/leads\/([^/]+)$/);
+      if (lead && config.method === 'get') return response(config, { lead: trips.partner.getLead(user, decodeURIComponent(lead[1])) });
+      const create = path.match(/^\/partner\/leads\/([^/]+)\/quotes$/);
+      if (create && config.method === 'post') return response(config, { quote: trips.partner.saveQuote(user, decodeURIComponent(create[1]), data) }, 201);
+      const quote = path.match(/^\/partner\/quotes\/([^/]+)$/);
+      if (quote && config.method === 'get') return response(config, { quote: trips.partner.getQuote(user, decodeURIComponent(quote[1])) });
+      if (quote && config.method === 'patch') {
+        const existing = trips.partner.getQuote(user, decodeURIComponent(quote[1]));
+        return response(config, { quote: trips.partner.saveQuote(user, existing.leadId, data, existing.id) });
+      }
+      const withdraw = path.match(/^\/partner\/quotes\/([^/]+)\/withdraw$/);
+      if (withdraw && config.method === 'post') return response(config, { quote: trips.partner.withdrawQuote(user, decodeURIComponent(withdraw[1])) });
+    } catch (error) {
+      if (!(error instanceof TripRequestError)) throw error;
+      throw new AxiosError('Request failed', AxiosError.ERR_BAD_REQUEST, config, {}, response(config, { code: error.code, fields: error.fields }, error.status));
     }
   }
   if (path.startsWith('/trips')) {

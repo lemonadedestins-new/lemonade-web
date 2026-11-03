@@ -1,0 +1,6 @@
+.proposal-details { min-width: 0; }
+.proposal-details p, .proposal-details li { overflow-wrap: anywhere; white-space: pre-wrap; }
+.proposal-details .quote-list-columns { grid-template-columns: 1fr 1fr; }
+.proposal-details .quote-list-columns li { font-size: .76rem; }
+.proposal-details .quote-highlights p, .proposal-details .quote-itinerary p { font-size: .8rem; }
+@media (max-width: 600px) { .proposal-details .quote-list-columns { grid-template-columns: 1fr; } }

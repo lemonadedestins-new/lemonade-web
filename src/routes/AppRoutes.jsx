@@ -19,7 +19,15 @@ const SettingsPage = lazy(() => import('../features/customer/pages/AccountPages'
 const LoginPage = lazy(() => import('../features/auth/pages/LoginPage'));
 const RegisterPage = lazy(() => import('../features/auth/pages/RegisterPage'));
 const ForgotPasswordPage = lazy(() => import('../features/auth/pages/ForgotPasswordPage'));
-const AccountReadyPage = lazy(() => import('../features/auth/pages/AccountReadyPage'));
+const PartnerLayout = lazy(() => import('../layouts/PartnerLayout'));
+const PartnerDashboardPage = lazy(() => import('../features/partner/pages/PartnerDashboardPage'));
+const LeadsPage = lazy(() => import('../features/partner/pages/LeadsPage'));
+const LeadDetailsPage = lazy(() => import('../features/partner/pages/LeadDetailsPage'));
+const QuotesPage = lazy(() => import('../features/quotes/pages/QuotesPage'));
+const QuoteDetailsPage = lazy(() => import('../features/quotes/pages/QuoteDetailsPage'));
+const CreateQuotePage = lazy(() => import('../features/quotes/pages/CreateQuotePage'));
+const PartnerProfilePage = lazy(() => import('../features/partner/pages/PartnerAccountPages').then(module => ({ default: module.PartnerProfilePage })));
+const PartnerSettingsPage = lazy(() => import('../features/partner/pages/PartnerAccountPages').then(module => ({ default: module.PartnerSettingsPage })));
 const ExplorePage = lazy(() => import('../features/home/pages/ExplorePage'));
 const InformationPage = lazy(() => import('../features/home/pages/InformationPage'));
 const NotFoundPage = lazy(() => import('../features/home/pages/InformationPage').then(module => ({ default: module.NotFoundPage })));
@@ -30,7 +38,6 @@ export default function AppRoutes() {
       <Route path={ROUTES.HOME} element={<HomePage />} />
       <Route path={ROUTES.EXPLORE} element={<ExplorePage />} />
       {['about', 'contact', 'privacy', 'terms'].map(page => <Route key={page} path={`/${page}`} element={<InformationPage page={page} />} />)}
-      <Route element={<ProtectedRoute />}><Route element={<RoleProtectedRoute allowedRoles={[ROLES.BUSINESS_OWNER]} />}><Route path={ROUTES.PARTNER} element={<AccountReadyPage />} /></Route></Route>
       <Route path="*" element={<NotFoundPage />} />
     </Route>
     <Route element={<ProtectedRoute />}><Route element={<RoleProtectedRoute allowedRoles={[ROLES.CUSTOMER]} />}><Route path="/customer" element={<CustomerLayout />}>
@@ -42,6 +49,18 @@ export default function AppRoutes() {
       <Route path="trips/:id/edit" element={<TripRequestPage />} />
       <Route path="profile" element={<ProfilePage />} />
       <Route path="settings" element={<SettingsPage />} />
+      <Route path="*" element={<NotFoundPage />} />
+    </Route></Route></Route>
+    <Route element={<ProtectedRoute />}><Route element={<RoleProtectedRoute allowedRoles={[ROLES.BUSINESS_OWNER]} />}><Route path="/partner" element={<PartnerLayout />}>
+      <Route index element={<Navigate to={ROUTES.PARTNER} replace />} />
+      <Route path="dashboard" element={<PartnerDashboardPage />} />
+      <Route path="leads" element={<LeadsPage />} />
+      <Route path="leads/:id" element={<LeadDetailsPage />} />
+      <Route path="leads/:leadId/quotes/new" element={<CreateQuotePage />} />
+      <Route path="quotes" element={<QuotesPage />} />
+      <Route path="quotes/:id" element={<QuoteDetailsPage />} />
+      <Route path="profile" element={<PartnerProfilePage />} />
+      <Route path="settings" element={<PartnerSettingsPage />} />
       <Route path="*" element={<NotFoundPage />} />
     </Route></Route></Route>
     <Route element={<GuestRoute />}><Route element={<AuthLayout />}>

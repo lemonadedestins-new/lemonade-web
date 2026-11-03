@@ -1,6 +1,6 @@
 # Lemonade Destinations
 
-A responsive travel marketplace frontend built with React, JavaScript, and Vite. This release completes **Phases 1 and 2**: destination discovery, authentication, and a customer workspace for planning trips and exploring planner proposals.
+A responsive travel marketplace frontend built with React, JavaScript, and Vite. This release implements **Phases 1–3**: destination discovery, authentication, a customer workspace, and a travel planner portal with enquiries, itinerary creation, and quotation management.
 
 ## Get started
 
@@ -15,9 +15,11 @@ Copy `.env.example` to `.env` to configure the API URL and mock mode. Mock mode 
 
 Choose **Try traveler login** or **Try planner login** on `/login` to fill a preview account. Both use `TravelDemo1!` when entering the credentials manually. You can also create an account and choose a role on `/register`.
 
-Preview users, password digests, access tokens, trip requests, drafts, and preferences exist only in memory. Reloading the page signs you out and resets the preview. Signing out clears customer caches and unfinished form values; saved mock records remain associated with their owner until reload. Preview password recovery displays a success state without sending email. No real marketplace accounts, planner communications, bookings, or payments are created.
+Preview users, password digests, access tokens, trip requests, quotes, drafts, and preferences exist only in memory. Reloading the page signs you out and resets the preview. Signing out clears customer and partner caches and unfinished form values; saved mock records remain associated with their owner until reload. Preview password recovery displays a success state without sending email. No real marketplace accounts, planner communications, bookings, or payments are created.
 
 The sample traveler has a Kashmir request with two proposals, a Kerala trip with a sample planner selection, and an editable Bali draft. Sample dates are relative to the current day. New accounts begin with an empty trip list.
+
+The sample planner, Valley & Beyond, has three new enquiries, a sent Kashmir quote, and an accepted Kerala quote. Newly registered planners have no assigned enquiries. To try the complete mock flow, submit a request as the sample traveler, sign out, use **Try planner login**, create and send a quote for that enquiry, then switch back to the traveler without reloading. The proposal and timeline update appear on the same trip. Withdrawing a sent quote removes it from the traveler's available proposals and retains the planner's record.
 
 ## Routes
 
@@ -31,17 +33,24 @@ The sample traveler has a Kashmir request with two proposals, a Kerala trip with
 - `/customer/trips/:id/edit` — resume a saved draft
 - `/customer/profile` — name and default departure city
 - `/customer/settings` — default accommodation and transportation preferences
-- `/partner/dashboard` — protected partner welcome page; full portal is Phase 3
+- `/partner/dashboard` — enquiry and quote statistics, available leads, and recent activity
+- `/partner/leads` — assigned enquiries with search and status filters
+- `/partner/leads/:id` — travel requirements and the planner's proposal
+- `/partner/leads/:leadId/quotes/new` — four-step quote form, private drafts, itinerary editor, and final review
+- `/partner/quotes` — searchable quotes with status filters
+- `/partner/quotes/:id` — proposal details, draft resumption, and confirmed withdrawal
+- `/partner/profile` — business name, city, specialties, and description
+- `/partner/settings` — default quote validity and terms
 - `/about`, `/contact`, `/privacy`, `/terms` — public information pages
 
-Customers can create and resume drafts, submit requests, and view detailed quotations with itineraries, inclusions, exclusions, and validity. Submitted requests are read-only. Quote selection and comparison, partner leads, and quotation creation are future work. A selected planner in the sample data does not represent a confirmed booking.
+Customers can create and resume drafts, submit requests, and view detailed quotations with itineraries, inclusions, exclusions, and validity. Planners can save private drafts, add or remove itinerary days, send proposals, and withdraw submitted or expired quotes. Submitted requests and quotes are read-only; drafts become read-only when their enquiry closes. Quote selection and comparison remain future work. A selected planner in the sample data does not represent a confirmed booking.
 
 ## Structure
 
 ```text
 src/
-  api/                    Axios client, auth/customer/trip services, mock repositories
-  components/common/      Shared buttons, logos, feedback, confirmation dialog
+  api/                    Axios client, auth/customer/trip/partner/quote services, mock repositories
+  components/common/      Shared buttons, logos, statistics, feedback, confirmation dialog
   components/forms/       Accessible form fields
   components/layout/      Public navigation, footer, route effects
   constants/              Route and role definitions
@@ -49,9 +58,10 @@ src/
   features/home/          Destination data, home and information pages
   features/customer/      Dashboard, profile, preferences, workspace styles
   features/trips/         Request form, trip list/details, validation, scoped Zustand store
-  features/quotes/        Reusable proposal cards and full itinerary dialog
+  features/partner/       Dashboard, enquiries, profile/settings, scoped Zustand store
+  features/quotes/        Quote form, list/details, validation, reusable proposal views
   hooks/                  Role-aware planning links
-  layouts/                Public, authentication, and customer layouts
+  layouts/                Public, authentication, and shared customer/partner workspace layouts
   routes/                 Protected, role-protected, and guest routes
   store/                  Notifications
   styles/                 Design tokens and global styles
@@ -82,7 +92,27 @@ Trip writes accept `destination`, `departureCity`, `startDate`, `endDate`, `adul
 
 Expected failures: 401 unauthenticated, 403 incorrect role, 404 missing or unowned trip, 409 editing a submitted request, and 422 validation errors (`{ code, fields: { fieldName: message } }`). The mock enforces these rules for realistic UI behavior; it is not a security boundary. Real backends must independently validate ownership, roles, inputs, and status transitions. Production POST handling should support idempotency for retries after an uncertain network outcome.
 
-The trip store shares list data and in-progress form values, clears on account changes, and ignores late responses from prior sessions. Step and dialog state stay local. Customer pages are lazy loaded; the public landing bundle does not eagerly load the workspace or mock repository.
+## Partner API contract
+
+Partner endpoints require an authenticated `BUSINESS_OWNER`. Leads expose the travel brief and the current planner's quote, excluding customer identity and competing proposals.
+
+| Method | Path | Response / behavior |
+| --- | --- | --- |
+| GET | `/partner/leads` | `{ leads: [...] }`, scoped to assigned enquiries |
+| GET | `/partner/leads/:id` | `{ lead }`, including `canQuote` and the planner's `quote` |
+| GET | `/partner/quotes` | `{ quotes: [...] }`, scoped to the authenticated planner |
+| GET | `/partner/quotes/:id` | `{ quote }`, including derived status and `canEdit` |
+| POST | `/partner/leads/:leadId/quotes` | `{ quote }` with status 201; creates a private draft or submitted quote |
+| PATCH | `/partner/quotes/:id` | `{ quote }`; updates or submits an owned draft |
+| POST | `/partner/quotes/:id/withdraw` | `{ quote }`; withdraws a submitted or expired proposal |
+| PATCH | `/partner/profile` | `{ user }`; accepts `name`, `businessName`, `city`, `specialties`, and `description` |
+| PATCH | `/partner/settings` | `{ user }`; accepts `validityDays` (1–30) and `defaultTerms` |
+
+Quote writes accept `title`, `price`, `days`, `nights`, `accommodation`, `transportation`, `meals`, `activities`, `inclusions`, `exclusions`, `terms`, `validUntil`, `notes`, `itinerary`, and `status` (`DRAFT` or `SUBMITTED`). An itinerary entry contains `day`, `title`, and `description`; inclusion/exclusion values are arrays of strings. Prices are total INR, dates are `YYYY-MM-DD`, and submitted itinerary length must match `days` with `nights = days - 1`. Drafts require a package title and validate any nonempty fields. Expiry cannot precede today or exceed the travel start date.
+
+The server owns IDs, planner/lead association, business name, timestamps, and status transitions. One quote per assigned planner/enquiry is supported. Customer drafts never become leads. Closed or past enquiries reject quote writes; accepted and withdrawn quotes cannot be withdrawn. Expected failures are 401 unauthenticated, 403 incorrect role, 404 missing/unowned/unassigned resources, 409 closed enquiry or invalid transition, and 422 field validation errors. The mock shares trip records across customer and partner repositories, so submissions and withdrawals update both sides together. Real backend authorization and validation remain required.
+
+The trip and partner stores share list data and in-progress form values, clear on account changes, and ignore late responses from prior sessions. Partner leads and quotes live in one store because they update together. Step and dialog state stay local. Customer and partner pages are lazy loaded; the public landing bundle does not eagerly load either workspace or the mock repository.
 
 ## Verification
 
@@ -91,9 +121,9 @@ npm test
 npm run build
 ```
 
-The Node test suite covers draft-to-submitted transitions, numeric/date validation, ownership, role restrictions, input allowlisting, detached API responses, seeded quotation data, service/store integration, logout cleanup, late responses, preferences, and safe return routes. No additional test dependencies are required.
+The Node test suite covers draft-to-submitted transitions, numeric/date validation, ownership, role restrictions, input allowlisting, detached API responses, seeded quotation data, service/store integration, logout cleanup, late responses, preferences, and safe return routes. Partner coverage adds assignment privacy, quote draft isolation, itinerary normalization, closed-enquiry protection, expiry, withdrawal, business settings, and the customer-to-planner service flow. No additional test dependencies are required.
 
-Phase 2 production build and all 19 automated checks pass. Browser-based visual and breakpoint verification remains pending: the browser host was unavailable, and Windows Computer Use stopped because it could not confidently determine Chrome’s current URL. Responsive styles cover mobile, tablet, and desktop layouts, but those layouts have not been visually certified in this session.
+All 38 automated checks pass. Browser-based visual and breakpoint verification remains pending because the browser host was unavailable. Responsive styles cover mobile, tablet, and desktop layouts, but those layouts have not been visually certified in this session. Phase 4 will address further API integration, responsive/accessibility testing, and performance refinement; it has not been started.
 
 ## Destination image credits
 

@@ -1,11 +1,20 @@
 import { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 
-const titles = { '/': 'Travel your way', '/explore': 'Explore destinations', '/login': 'Welcome back', '/register': 'Create your account', '/forgot-password': 'Reset your password', '/about': 'Our story', '/contact': 'Help & contact', '/privacy': 'Privacy', '/terms': 'Terms of use', '/customer/dashboard': 'Welcome aboard', '/partner/dashboard': 'Welcome, travel partner' };
+const titles = { '/': 'Travel your way', '/explore': 'Explore destinations', '/login': 'Welcome back', '/register': 'Create your account', '/forgot-password': 'Reset your password', '/about': 'Our story', '/contact': 'Help & contact', '/privacy': 'Privacy', '/terms': 'Terms of use', '/customer/dashboard': 'Welcome aboard', '/customer/trips': 'My trips', '/customer/trips/new': 'Plan a trip', '/customer/profile': 'My profile', '/customer/settings': 'Preferences', '/partner/dashboard': 'Planner overview', '/partner/leads': 'Travel enquiries', '/partner/quotes': 'My quotes', '/partner/profile': 'Business profile', '/partner/settings': 'Quote defaults' };
+function pageTitle(pathname) {
+  if (titles[pathname]) return titles[pathname];
+  if (/^\/partner\/leads\/[^/]+\/quotes\/new$/.test(pathname)) return 'Create a quote';
+  if (/^\/partner\/leads\/[^/]+$/.test(pathname)) return 'Travel brief';
+  if (/^\/partner\/quotes\/[^/]+$/.test(pathname)) return 'Your proposal';
+  if (/^\/customer\/trips\/[^/]+\/edit$/.test(pathname)) return 'Edit your draft';
+  if (/^\/customer\/trips\/[^/]+$/.test(pathname)) return 'Your trip';
+  return 'Page not found';
+}
 export default function RouteEffects() {
   const { pathname, hash } = useLocation();
   useEffect(() => {
-    document.title = `${titles[pathname] || (pathname === '/customer/trips/new' ? 'Plan a trip' : pathname.endsWith('/edit') ? 'Edit your draft' : pathname.startsWith('/customer/trips/') ? 'Your trip' : pathname === '/customer/trips' ? 'My trips' : pathname === '/customer/profile' ? 'My profile' : pathname === '/customer/settings' ? 'Preferences' : 'Page not found')} · Lemonade Destinations`;
+    document.title = `${pageTitle(pathname)} · Lemonade Destinations`;
     const frame = requestAnimationFrame(() => {
       if (hash) document.getElementById(hash.slice(1))?.scrollIntoView({ behavior: 'smooth' });
       else window.scrollTo(0, 0);

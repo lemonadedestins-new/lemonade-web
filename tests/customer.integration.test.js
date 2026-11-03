@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { createServer } from 'vite';
 
 test('customer services and authentication boundaries integrate', async t => {
-  const server = await createServer({ configFile: false, mode: 'test', server: { middlewareMode: true, hmr: false }, appType: 'custom', define: { 'import.meta.env.VITE_USE_MOCK_API': '"true"' } });
+  const server = await createServer({ configFile: false, mode: 'test', server: { middlewareMode: true, hmr: false, ws: false }, appType: 'custom', optimizeDeps: { noDiscovery: true, include: [] }, define: { 'import.meta.env.VITE_USE_MOCK_API': '"true"' } });
   t.after(() => server.close());
   const { useAuthStore: auth } = await server.ssrLoadModule('/src/features/auth/store/authStore.js');
   const { useTripStore: trips } = await server.ssrLoadModule('/src/features/trips/store/tripStore.js');
