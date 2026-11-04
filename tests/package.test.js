@@ -44,4 +44,8 @@ test('published package validation and customer enquiries preserve selected pack
   assert.equal(trip.budget, item.price * 2);
   assert.equal(trip.endDate, '2099-06-12');
   assert.equal(trip.status, 'PLANNERS_ASSIGNED');
+  const lead = trips.partner.getLead(planner, trip.id);
+  assert.equal(lead.packageSelection.title, item.title);
+  assert.equal(lead.packageSelection.pricePerPerson, item.price);
+  assert.equal(lead.customerId, undefined);
 });
