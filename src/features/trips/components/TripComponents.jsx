@@ -11,7 +11,7 @@ export function TripStatus({ status }) {
 }
 export function TripImage({ destination, ...props }) {
   const place = destinations.find(item => item.name.toLowerCase() === destination?.toLowerCase());
-  return <img src={place ? imageUrl(place, 800) : HERO_IMAGE} alt="" loading="lazy" {...props} />;
+  return <img src={place ? imageUrl(place, 800) : HERO_IMAGE} alt={props.alt ?? (place ? `${place.name} travel landscape` : 'South India travel landscape')} loading="lazy" {...props} />;
 }
 export function TripCard({ trip }) {
   const draft = trip.status === TRIP_STATUS.DRAFT;

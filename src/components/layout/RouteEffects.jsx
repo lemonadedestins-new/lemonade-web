@@ -21,7 +21,10 @@ export default function RouteEffects() {
     document.title = `${pageTitle(pathname)} · Lemonade Destinations`;
     const frame = requestAnimationFrame(() => {
       if (hash) document.getElementById(hash.slice(1))?.scrollIntoView({ behavior: 'smooth' });
-      else window.scrollTo(0, 0);
+      else {
+        window.scrollTo(0, 0);
+        document.querySelector('main#main-content, main#workspace-content')?.focus({ preventScroll: true });
+      }
     });
     return () => cancelAnimationFrame(frame);
   }, [pathname, hash]);

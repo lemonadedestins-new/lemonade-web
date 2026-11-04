@@ -147,12 +147,13 @@ The trip and partner stores share list data and in-progress form values, clear o
 
 ```sh
 npm test
+npm run lint
 npm run build
 ```
 
 The Node test suite covers draft-to-submitted transitions, numeric/date validation, ownership, role restrictions, input allowlisting, detached API responses, seeded quotation data, service/store integration, logout cleanup, late responses, preferences, and safe return routes. Partner coverage adds assignment privacy, quote draft isolation, itinerary normalization, closed-enquiry protection, expiry, withdrawal, business settings, and the customer-to-planner service flow. No additional test dependencies are required.
 
-All 41 automated checks pass, including the package catalog, planner profile, package validation, and customer enquiry flows. Browser-based visual and breakpoint verification remains pending because the browser host was unavailable. Responsive styles cover mobile, tablet, and desktop layouts, but those layouts have not been visually certified in this session.
+Phase 4 quality hardening is complete: route changes now restore focus for keyboard and assistive technology users, loading states announce progress, destination imagery has meaningful fallback text, reduced-motion styles are respected, and the lint configuration validates JSX component usage. All 41 automated checks pass, and the production build succeeds. Browser-based visual and breakpoint verification remains pending because the browser host was unavailable; responsive styles cover mobile, tablet, and desktop layouts.
 
 ## Destination image credits
 

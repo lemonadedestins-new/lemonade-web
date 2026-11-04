@@ -13,7 +13,7 @@ import Button from './Button';
 import { useNotificationStore } from '../../store/notificationStore';
 
 export function LoadingSpinner({ size = 24 }) { return <CircularProgress size={size} color="inherit" aria-label="Loading" />; }
-export function PageLoader() { return <div className="page-loader" role="status"><LoadingSpinner size={32} /><p>Getting things ready for you…</p></div>; }
+export function PageLoader() { return <div className="page-loader" role="status" aria-live="polite"><LoadingSpinner size={32} /><p>Getting things ready for you…</p></div>; }
 export function ErrorState({ title = 'A small detour.', message = 'Something didn’t load as expected. Let’s try again.', onRetry }) { return <div className="state-card" role="alert"><AlertCircle size={38} /><h2>{title}</h2><p>{message}</p>{onRetry ? <Button onClick={onRetry}>Try again</Button> : <Button to="/">Back to home</Button>}</div>; }
 export function EmptyState({ title, message, children }) { return <div className="state-card"><Compass size={38} /><h2>{title}</h2><p>{message}</p>{children}</div>; }
 export function ToastNotification() {

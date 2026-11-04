@@ -5,7 +5,7 @@ import Drawer from '@mui/material/Drawer';
 import IconButton from '@mui/material/IconButton';
 import Logo from '../common/Logo';
 import Button from '../common/Button';
-import { ROLE_HOME, registrationPath, ROLES } from '../../constants/routes';
+import { ROLE_HOME } from '../../constants/routes';
 import { useAuthStore } from '../../features/auth/store/authStore';
 
 const links = [{ to: '/', label: 'Home' }, { to: '/explore', label: 'Packages' }, { to: '/#how-it-works', label: 'How it works' }, { to: '/#travel-partners', label: 'For travel planners' }, { to: '/about', label: 'About' }];

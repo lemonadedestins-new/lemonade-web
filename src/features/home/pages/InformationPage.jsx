@@ -5,7 +5,6 @@ import AccordionSummary from '@mui/material/AccordionSummary';
 import AccordionDetails from '@mui/material/AccordionDetails';
 import { ChevronDown } from 'lucide-react';
 import Button from '../../../components/common/Button';
-import { registrationPath } from '../../../constants/routes';
 import { apiConfig } from '../../../api/config';
 import '../home.css';
 import '../sections.css';
