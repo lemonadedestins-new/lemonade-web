@@ -1,9 +1,9 @@
 import { Link } from 'react-router-dom';
-import { ArrowUpRight, Clock, MapPin, Check } from 'lucide-react';
+import { ArrowUpRight, ArrowLeftRight, Clock, MapPin, Check } from 'lucide-react';
 import { destinationById, imageUrl } from '../../home/data/destinations';
 import { formatMoney } from '../../trips/tripModel';
 import { packagePath, plannerPath } from '../packageModel';
-export default function PackageCard({ item }) {
+export default function PackageCard({ item, compareSelected = false, compareDisabled = false, onCompare }) {
   const place = destinationById(item.destinationId);
   return <article className="package-card">
     <Link to={packagePath(item.id)} className="package-card-image" aria-label={item.title}><img src={imageUrl(place)} alt={place.alt} loading="lazy" width="700" height="460" /><span>{place.name} · {place.country}</span></Link>
@@ -13,7 +13,7 @@ export default function PackageCard({ item }) {
       <div className="package-meta"><span><Clock size={14} />{item.days} days / {item.nights} nights</span><span><MapPin size={14} />From {item.pickupCity}</span></div>
       <p className="package-card-summary">{item.summary}</p>
       <div className="package-included">{item.inclusions.slice(0, 2).map((entry, index) => <span key={index}><Check size={13} />{entry}</span>)}</div>
-      <div className="package-card-bottom"><div><small>Starting from</small><strong>{formatMoney(item.price)}</strong><small>per adult · twin sharing</small></div><Link to={packagePath(item.id)} className="text-link">View package <ArrowUpRight size={16} /></Link></div>
+      <div className="package-card-bottom"><div><small>Starting from</small><strong>{formatMoney(item.price)}</strong><small>per adult · twin sharing</small></div><div className="package-card-actions"><button type="button" className={`package-compare-toggle${compareSelected ? ' selected' : ''}`} aria-pressed={compareSelected} disabled={compareDisabled && !compareSelected} onClick={() => onCompare?.(item)}><ArrowLeftRight size={15} />{compareSelected ? 'Added' : 'Compare'}</button><Link to={packagePath(item.id)} className="text-link">View package <ArrowUpRight size={16} /></Link></div></div>
     </div>
   </article>;
 }
