@@ -1,6 +1,6 @@
 # Lemonade Destinations
 
-A responsive travel marketplace frontend built with React, JavaScript, and Vite. This release implements **Phases 1–3**: destination discovery, authentication, a customer workspace, and a travel planner portal with enquiries, itinerary creation, and quotation management.
+A responsive South India travel marketplace frontend built with React, JavaScript, and Vite. Planners publish the packages they offer; customers browse a destination, compare packages from different planners, and enquire about the package that fits them.
 
 ## Get started
 
@@ -17,14 +17,16 @@ Choose **Try traveler login** or **Try planner login** on `/login` to fill a pre
 
 Preview users, password digests, access tokens, trip requests, quotes, drafts, and preferences exist only in memory. Reloading the page signs you out and resets the preview. Signing out clears customer and partner caches and unfinished form values; saved mock records remain associated with their owner until reload. Preview password recovery displays a success state without sending email. No real marketplace accounts, planner communications, bookings, or payments are created.
 
-The sample traveler has a Kashmir request with two proposals, a Kerala trip with a sample planner selection, and an editable Bali draft. Sample dates are relative to the current day. New accounts begin with an empty trip list.
+The sample traveler has a Munnar request with two proposals, an Alleppey trip with a sample planner selection, and an editable Coorg draft. Sample dates are relative to the current day. New accounts begin with an empty trip list.
 
-The sample planner, Valley & Beyond, has three new enquiries, a sent Kashmir quote, and an accepted Kerala quote. Newly registered planners have no assigned enquiries. To try the complete mock flow, submit a request as the sample traveler, sign out, use **Try planner login**, create and send a quote for that enquiry, then switch back to the traveler without reloading. The proposal and timeline update appear on the same trip. Withdrawing a sent quote removes it from the traveler's available proposals and retains the planner's record.
+The sample catalog contains Munnar, Ooty, Coorg, Alleppey, Hampi, and Pondicherry packages from fictional South India planners. The sample planner, Green Trail Holidays, can manage its package listings and has assigned enquiries. Newly registered planners have no listings or assigned enquiries. To try the marketplace, browse Munnar, open a package, log in as the sample traveler, and submit an enquiry. To publish a listing, use **Try planner login**, open **My packages**, and add or edit a package.
 
 ## Routes
 
 - `/` — public home page
-- `/explore` — destination filters and trip inspiration
+- `/explore` — South India package catalog with destination, planner, budget, duration, and search filters
+- `/packages/:id` — package itinerary, inclusions, planner profile, and enquiry CTA
+- `/planners/:id` — planner profile and all published packages
 - `/login`, `/register`, `/forgot-password` — authentication flows
 - `/customer/dashboard` — welcome, trip statistics, recent activity, and upcoming trips
 - `/customer/trips` — searchable trip cards with status filters
@@ -33,7 +35,9 @@ The sample planner, Valley & Beyond, has three new enquiries, a sent Kashmir quo
 - `/customer/trips/:id/edit` — resume a saved draft
 - `/customer/profile` — name and default departure city
 - `/customer/settings` — default accommodation and transportation preferences
-- `/partner/dashboard` — enquiry and quote statistics, available leads, and recent activity
+- `/partner/dashboard` — package catalog summary, enquiry and quote statistics, available leads, and recent activity
+- `/partner/packages` — publish, edit, filter, and archive package listings
+- `/partner/packages/new` and `/partner/packages/:id/edit` — package editor with itinerary, pricing, inclusions, exclusions, and terms
 - `/partner/leads` — assigned enquiries with search and status filters
 - `/partner/leads/:id` — travel requirements and the planner's proposal
 - `/partner/leads/:leadId/quotes/new` — four-step quote form, private drafts, itinerary editor, and final review
@@ -43,7 +47,7 @@ The sample planner, Valley & Beyond, has three new enquiries, a sent Kashmir quo
 - `/partner/settings` — default quote validity and terms
 - `/about`, `/contact`, `/privacy`, `/terms` — public information pages
 
-Customers can create and resume drafts, submit requests, and view detailed quotations with itineraries, inclusions, exclusions, and validity. Planners can save private drafts, add or remove itinerary days, send proposals, and withdraw submitted or expired quotes. Submitted requests and quotes are read-only; drafts become read-only when their enquiry closes. Quote selection and comparison remain future work. A selected planner in the sample data does not represent a confirmed booking.
+Customers can browse published South India packages, compare planner offerings, view complete itineraries, and submit date-based package enquiries. Planners can publish package listings, save drafts, edit published packages, archive listings, and continue using the separate enquiry and quotation workspace. Package prices are indicative per adult on twin sharing; dates, availability, final prices, and terms are confirmed with the planner. No booking or payment is created.
 
 ## Structure
 
@@ -58,7 +62,8 @@ src/
   features/home/          Destination data, home and information pages
   features/customer/      Dashboard, profile, preferences, workspace styles
   features/trips/         Request form, trip list/details, validation, scoped Zustand store
-  features/partner/       Dashboard, enquiries, profile/settings, scoped Zustand store
+  features/packages/      Public catalog, planner profiles, package details, enquiries, and package editor
+  features/partner/       Planner dashboard, enquiries, profile/settings, scoped Zustand store
   features/quotes/        Quote form, list/details, validation, reusable proposal views
   hooks/                  Role-aware planning links
   layouts/                Public, authentication, and shared customer/partner workspace layouts
@@ -92,7 +97,31 @@ Trip writes accept `destination`, `departureCity`, `startDate`, `endDate`, `adul
 
 Expected failures: 401 unauthenticated, 403 incorrect role, 404 missing or unowned trip, 409 editing a submitted request, and 422 validation errors (`{ code, fields: { fieldName: message } }`). The mock enforces these rules for realistic UI behavior; it is not a security boundary. Real backends must independently validate ownership, roles, inputs, and status transitions. Production POST handling should support idempotency for retries after an uncertain network outcome.
 
-## Partner API contract
+## Package and partner API contract
+
+Public package endpoints are intentionally readable without authentication:
+
+| Method | Path | Response / behavior |
+| --- | --- | --- |
+| GET | `/packages` | `{ packages: [...] }`, published South India listings |
+| GET | `/packages/:id` | `{ package }`, including planner profile and full itinerary |
+| GET | `/planners/:id` | `{ planner }`, including all published packages |
+| POST | `/packages/:id/enquiries` | `{ trip }` with status 201; requires a customer session and creates a selected-package enquiry |
+
+Planner package endpoints require an authenticated `BUSINESS_OWNER`:
+
+| Method | Path | Response / behavior |
+| --- | --- | --- |
+| GET | `/partner/packages` | `{ packages: [...] }`, including the planner’s drafts and archived listings |
+| GET | `/partner/packages/:id` | `{ package }`, owned listing only |
+| POST | `/partner/packages` | `{ package }` with status 201; creates a draft or published listing |
+| PATCH | `/partner/packages/:id` | `{ package }`; updates an owned listing |
+
+Published listings require a supported destination, package title, summary, per-person price, duration, pickup city, stay, transport, meals, inclusions, exclusions, terms, and one itinerary entry per day. Drafts may omit incomplete details but remain private. Archive removes a package from public search while keeping it in the planner’s collection.
+
+Customer package enquiries store the selected package, planner, price snapshot, dates, and estimated total on the customer’s trip record. The planner receives the enquiry through its assigned leads. The mock adapter is ephemeral and does not send external messages.
+
+### Quote and lead endpoints
 
 Partner endpoints require an authenticated `BUSINESS_OWNER`. Leads expose the travel brief and the current planner's quote, excluding customer identity and competing proposals.
 
@@ -123,16 +152,15 @@ npm run build
 
 The Node test suite covers draft-to-submitted transitions, numeric/date validation, ownership, role restrictions, input allowlisting, detached API responses, seeded quotation data, service/store integration, logout cleanup, late responses, preferences, and safe return routes. Partner coverage adds assignment privacy, quote draft isolation, itinerary normalization, closed-enquiry protection, expiry, withdrawal, business settings, and the customer-to-planner service flow. No additional test dependencies are required.
 
-All 38 automated checks pass. Browser-based visual and breakpoint verification remains pending because the browser host was unavailable. Responsive styles cover mobile, tablet, and desktop layouts, but those layouts have not been visually certified in this session. Phase 4 will address further API integration, responsive/accessibility testing, and performance refinement; it has not been started.
+All 41 automated checks pass, including the package catalog, planner profile, package validation, and customer enquiry flows. Browser-based visual and breakpoint verification remains pending because the browser host was unavailable. Responsive styles cover mobile, tablet, and desktop layouts, but those layouts have not been visually certified in this session.
 
 ## Destination image credits
 
-All seven photographs are served from Unsplash, whose [license](https://unsplash.com/license) permits free use, including commercial use, without required attribution. Artist and subject links are included here as a courtesy.
+All six photographs are served from Unsplash, whose [license](https://unsplash.com/license) permits free use, including commercial use, without required attribution. Artist and subject links are included here as a courtesy.
 
-- [Shawn — aerial view of Ao Nang](https://unsplash.com/photos/birds-eye-view-photography-of-island-dd_hrEMsF2o) (hero image)
-- [Mohamed Alaau — Vilufushi, Maldives](https://unsplash.com/photos/an-aerial-view-of-a-tropical-island-with-palm-trees-dFyi9Mxd4g4)
-- [Hello World — Bali rice terraces](https://unsplash.com/photos/rice-terraces-and-lush-trees-fill-this-landscape-AdNQ7YlCjhY)
-- [Yasser Mir — Thajwas Glacier, Kashmir](https://unsplash.com/photos/a-mountain-range-covered-in-snow-and-green-grass-qudRJqC4HjY)
-- [Kunal Kalra — Alleppey, Kerala](https://unsplash.com/photos/boat-on-water-near-green-trees-during-daytime-W6nTFusoEzE)
-- [Fabien BELLANGER — Dubai skyline](https://unsplash.com/photos/burj-khalifa-skyline-in-dubai-WyfXOHgI49s)
-- [Nopparuj Lamaikul — Krabi, Thailand](https://unsplash.com/photos/a-group-of-boats-floating-on-top-of-a-body-of-water-ZA4V1cBpj_w)
+- [Munnar tea hills](https://unsplash.com/photos/rows-of-tea-plants-on-a-hillside-with-trees-Su8guWN5-_M) (hero image)
+- [Ooty hillside lake](https://unsplash.com/photos/a-lush-green-hillside-with-a-lake-in-the-distance-6qUltw7SjzM)
+- [Coorg mountain forest](https://unsplash.com/photos/green-trees-and-mountains-during-daytime-B5CZBhaz8CY)
+- [Alleppey backwaters](https://unsplash.com/photos/boat-on-water-near-green-trees-during-daytime-W6nTFusoEzE)
+- [Hampi landscape](https://unsplash.com/photos/landscape-photography-of-green-grass-field-and-green-coconut-palm-trees-03JtNfCubFw)
+- [Pondicherry coast](https://unsplash.com/photos/an-aerial-view-of-a-beach-and-a-city-i3FLO6Nthw4)

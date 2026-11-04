@@ -15,7 +15,7 @@ test('a customer request can receive and withdraw a planner quote across authent
   let trip, draft, quote;
   await t.test('customer submissions become assigned leads; drafts and other roles stay restricted', async () => {
     await login('customer');
-    trip = await tripApi.create({ destination: 'Bali', departureCity: 'Chennai', startDate: '2099-06-15', endDate: '2099-06-15', adults: 2, children: 0, budget: 30000, tripType: 'Friends', status: 'SUBMITTED' });
+    trip = await tripApi.create({ destination: 'Munnar', departureCity: 'Chennai', startDate: '2099-06-15', endDate: '2099-06-15', adults: 2, children: 0, budget: 30000, tripType: 'Friends', status: 'SUBMITTED' });
     await assert.rejects(partnerApi.leads(), error => error.response.status === 403);
     await auth.getState().logout(); await login('partner');
     await store.getState().load();
@@ -26,7 +26,7 @@ test('a customer request can receive and withdraw a planner quote across authent
     assert.equal(lead.canQuote, true);
   });
   await t.test('drafts save and resume without becoming customer-visible', async () => {
-    draft = await store.getState().saveQuote(trip.id, { title: 'Bali at your pace', status: 'DRAFT' });
+    draft = await store.getState().saveQuote(trip.id, { title: 'Munnar at your pace', status: 'DRAFT' });
     store.getState().rememberDraft(trip.id, { title: 'Unfinished changes' });
     await auth.getState().logout();
     assert.deepEqual(store.getState().formDrafts, {});
@@ -37,13 +37,13 @@ test('a customer request can receive and withdraw a planner quote across authent
     assert.equal((await partnerApi.lead(trip.id)).quote.id, draft.id);
   });
   await t.test('submitting updates the customer proposal list, status and timeline', async () => {
-    quote = await store.getState().saveQuote(trip.id, { title: 'Bali at your pace', price: 28000, days: 1, nights: 0, accommodation: 'No overnight stay; day-use lounge included', transportation: 'Private car and airport transfers', meals: 'Lunch at a local restaurant', activities: 'A guided walk and cooking demonstration', inclusions: 'Private transport\nLunch and guide\nTaxes', exclusions: 'Flights\nTravel insurance', validUntil: '2099-06-10', terms: 'Availability is subject to confirmation before booking.', itinerary: [{ title: 'A taste of Bali', description: 'A relaxed day of local food, village walks and sightseeing.' }], status: 'SUBMITTED' }, draft.id);
+    quote = await store.getState().saveQuote(trip.id, { title: 'Munnar at your pace', price: 28000, days: 1, nights: 0, accommodation: 'No overnight stay; day-use lounge included', transportation: 'Private car and airport transfers', meals: 'Lunch at a local restaurant', activities: 'A guided walk and cooking demonstration', inclusions: 'Private transport\nLunch and guide\nTaxes', exclusions: 'Flights\nTravel insurance', validUntil: '2099-06-10', terms: 'Availability is subject to confirmation before booking.', itinerary: [{ title: 'A taste of Munnar', description: 'A relaxed day of local food, village walks and sightseeing.' }], status: 'SUBMITTED' }, draft.id);
     assert.equal(quote.id, draft.id);
     await assert.rejects(quoteApi.create(trip.id, { title: 'Duplicate', status: 'DRAFT' }), error => error.response.status === 409);
     await auth.getState().logout(); await login('customer');
     const updated = await tripApi.get(trip.id);
     assert.equal(updated.quotes[0].title, quote.title);
-    assert.equal(updated.quotes[0].plannerName, 'Valley & Beyond');
+    assert.equal(updated.quotes[0].plannerName, 'Green Trail Holidays');
     assert.equal(updated.status, 'QUOTES_RECEIVED');
     assert.equal(updated.timeline.at(-1).title, 'A new planner proposal');
   });
@@ -80,7 +80,7 @@ test('a customer request can receive and withdraw a planner quote across authent
       await pending;
       assert.deepEqual(store.getState().leads, []);
     } finally { partnerApi.leads = original; }
-    for (const path of ['/partner/leads', '/partner/leads/island-honeymoon/quotes/new', '/partner/quotes/quote-valley', '/partner/settings']) assert.equal(safeReturnPath(path, 'BUSINESS_OWNER'), path);
+    for (const path of ['/partner/leads', '/partner/leads/munnar-honeymoon/quotes/new', '/partner/quotes/quote-valley', '/partner/settings']) assert.equal(safeReturnPath(path, 'BUSINESS_OWNER'), path);
     for (const path of ['/customer/trips', '/partner/leads/../../customer/trips', '//example.com']) assert.equal(safeReturnPath(path, 'BUSINESS_OWNER'), null);
   });
 });

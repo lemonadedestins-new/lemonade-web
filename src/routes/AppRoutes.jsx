@@ -28,7 +28,12 @@ const QuoteDetailsPage = lazy(() => import('../features/quotes/pages/QuoteDetail
 const CreateQuotePage = lazy(() => import('../features/quotes/pages/CreateQuotePage'));
 const PartnerProfilePage = lazy(() => import('../features/partner/pages/PartnerAccountPages').then(module => ({ default: module.PartnerProfilePage })));
 const PartnerSettingsPage = lazy(() => import('../features/partner/pages/PartnerAccountPages').then(module => ({ default: module.PartnerSettingsPage })));
-const ExplorePage = lazy(() => import('../features/home/pages/ExplorePage'));
+const ExplorePage = lazy(() => import('../features/packages/pages/PackageCatalogPage'));
+const PackageDetailsPage = lazy(() => import('../features/packages/pages/PackageDetailsPage'));
+const PlannerPage = lazy(() => import('../features/packages/pages/PlannerPage'));
+const PackageEnquiryPage = lazy(() => import('../features/packages/pages/PackageEnquiryPage'));
+const ManagePackagesPage = lazy(() => import('../features/packages/pages/ManagePackagesPage'));
+const PackageEditorPage = lazy(() => import('../features/packages/pages/PackageEditorPage'));
 const InformationPage = lazy(() => import('../features/home/pages/InformationPage'));
 const NotFoundPage = lazy(() => import('../features/home/pages/InformationPage').then(module => ({ default: module.NotFoundPage })));
 
@@ -37,6 +42,9 @@ export default function AppRoutes() {
     <Route element={<PublicLayout />}>
       <Route path={ROUTES.HOME} element={<HomePage />} />
       <Route path={ROUTES.EXPLORE} element={<ExplorePage />} />
+      <Route path="/packages" element={<ExplorePage />} />
+      <Route path="/packages/:id" element={<PackageDetailsPage />} />
+      <Route path="/planners/:id" element={<PlannerPage />} />
       {['about', 'contact', 'privacy', 'terms'].map(page => <Route key={page} path={`/${page}`} element={<InformationPage page={page} />} />)}
       <Route path="*" element={<NotFoundPage />} />
     </Route>
@@ -45,6 +53,7 @@ export default function AppRoutes() {
       <Route path="dashboard" element={<DashboardPage />} />
       <Route path="trips" element={<MyTripsPage />} />
       <Route path="trips/new" element={<TripRequestPage />} />
+      <Route path="packages/:id/enquire" element={<PackageEnquiryPage />} />
       <Route path="trips/:id" element={<TripDetailsPage />} />
       <Route path="trips/:id/edit" element={<TripRequestPage />} />
       <Route path="profile" element={<ProfilePage />} />
@@ -54,6 +63,9 @@ export default function AppRoutes() {
     <Route element={<ProtectedRoute />}><Route element={<RoleProtectedRoute allowedRoles={[ROLES.BUSINESS_OWNER]} />}><Route path="/partner" element={<PartnerLayout />}>
       <Route index element={<Navigate to={ROUTES.PARTNER} replace />} />
       <Route path="dashboard" element={<PartnerDashboardPage />} />
+      <Route path="packages" element={<ManagePackagesPage />} />
+      <Route path="packages/new" element={<PackageEditorPage />} />
+      <Route path="packages/:id/edit" element={<PackageEditorPage />} />
       <Route path="leads" element={<LeadsPage />} />
       <Route path="leads/:id" element={<LeadDetailsPage />} />
       <Route path="leads/:leadId/quotes/new" element={<CreateQuotePage />} />

@@ -31,7 +31,7 @@ export function TripSummary({ trip }) {
     ['Total budget', `${formatMoney(trip.budget)}${trip.budget ? ' · INR, for everyone' : ''}`],
     ['Trip type', trip.tripType], ['Accommodation', trip.accommodation], ['Transportation', trip.transportation],
   ];
-  return <div className="trip-summary"><dl className="trip-facts">{rows.map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{value || 'Not set yet'}</dd></div>)}</dl>
+  return <div className="trip-summary">{trip.packageSelection && <div className="package-selection"><span className="small-label">PACKAGE ENQUIRY</span><strong>{trip.packageSelection.title}</strong><p>{trip.packageSelection.plannerName} · {formatMoney(trip.packageSelection.pricePerPerson)} per adult at enquiry · pickup: {trip.packageSelection.pickupCity}</p><p>Dates and the final price are subject to planner confirmation.</p></div>}<dl className="trip-facts">{rows.map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{value || 'Not set yet'}</dd></div>)}</dl>
     <div className="summary-note"><h4>Things you love</h4>{trip.interests?.length ? <div className="interest-tags">{trip.interests.map(interest => <span key={interest}>{interest}</span>)}</div> : <p>Open to inspiration</p>}</div>
     {trip.specialRequirements && <div className="summary-note"><h4>Special requirements</h4><p>{trip.specialRequirements}</p></div>}
     {trip.notes && <div className="summary-note"><h4>A little more about your trip</h4><p>{trip.notes}</p></div>}

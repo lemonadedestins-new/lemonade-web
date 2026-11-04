@@ -12,15 +12,15 @@ const customer = { id: 'traveler', role: 'CUSTOMER' };
 const partner = { id: 'planner', role: 'BUSINESS_OWNER', name: 'Test Planner', businessName: 'Test Journeys' };
 const another = { ...partner, id: 'other-planner' };
 const demo = { ...partner, id: 'demo-partner' };
-const tripInput = { ...DEFAULT_TRIP, destination: 'Bali', departureCity: 'Chennai', startDate: '2099-06-15', endDate: '2099-06-17', budget: 90000, tripType: 'Family', status: 'SUBMITTED' };
-const quoteInput = { title: 'Three days of Bali', price: 84000, days: 3, nights: 2, accommodation: 'Two nights at a boutique hotel in Ubud', transportation: 'Private transfers throughout the trip', meals: 'Breakfast daily', activities: 'Rice terrace walk and a local cooking class', inclusions: ['Hotel stays', 'Transfers and activities', 'Applicable taxes'], exclusions: ['Flights', 'Travel insurance'], terms: 'Subject to availability. Cancellation terms to be confirmed before booking.', validUntil: '2099-06-10', notes: '', itinerary: [1, 2, 3].map(day => ({ day, title: `Day ${day} in Bali`, description: 'A relaxed day with local sightseeing and time to explore.' })), status: 'SUBMITTED' };
+const tripInput = { ...DEFAULT_TRIP, destination: 'Munnar', departureCity: 'Chennai', startDate: '2099-06-15', endDate: '2099-06-17', budget: 90000, tripType: 'Family', status: 'SUBMITTED' };
+const quoteInput = { title: 'Three days of Munnar', price: 84000, days: 3, nights: 2, accommodation: 'Two nights at a boutique hotel in Ubud', transportation: 'Private transfers throughout the trip', meals: 'Breakfast daily', activities: 'Rice terrace walk and a local cooking class', inclusions: ['Hotel stays', 'Transfers and activities', 'Applicable taxes'], exclusions: ['Flights', 'Travel insurance'], terms: 'Subject to availability. Cancellation terms to be confirmed before booking.', validUntil: '2099-06-10', notes: '', itinerary: [1, 2, 3].map(day => ({ day, title: `Day ${day} in Munnar`, description: 'A relaxed day with local sightseeing and time to explore.' })), status: 'SUBMITTED' };
 function fixture() { const repository = createTripRepository([], { defaultPartnerIds: [partner.id] }); return { repository, trip: repository.save(customer, tripInput) }; }
 const rejects = (action, status, code) => assert.throws(action, error => error instanceof TripRequestError && error.status === status && error.code === code);
 
 test('only assigned planners can see leads; private customer and competing quote data are omitted', () => {
   const { repository, trip } = fixture();
   const lead = repository.partner.getLead(partner, trip.id);
-  assert.equal(lead.destination, 'Bali');
+  assert.equal(lead.destination, 'Munnar');
   assert.equal(lead.status, 'NEW');
   for (const field of ['customerId', 'assignedPartnerIds', 'quotes', 'timeline']) assert.equal(lead[field], undefined);
   assert.deepEqual(repository.partner.listLeads(another), []);
@@ -30,8 +30,8 @@ test('only assigned planners can see leads; private customer and competing quote
 });
 test('customer drafts never become leads, even when a seeded assignment exists', () => {
   const repository = createTripRepository(createSampleTrips());
-  assert.ok(!repository.partner.listLeads(demo).some(lead => lead.id === 'bali-dream'));
-  rejects(() => repository.partner.getLead(demo, 'bali-dream'), 404, 'LEAD_NOT_FOUND');
+  assert.ok(!repository.partner.listLeads(demo).some(lead => lead.id === 'coorg-dream'));
+  rejects(() => repository.partner.getLead(demo, 'coorg-dream'), 404, 'LEAD_NOT_FOUND');
 });
 test('quote drafts stay private and can be resumed, then publish once to the same customer trip', () => {
   const { repository, trip } = fixture();
@@ -122,7 +122,7 @@ test('responses are detached, and seeded planner data contains new, quoted and a
   assert.equal(repository.partner.listQuotes(demo).length, 2);
 });
 test('business profile inputs cannot alter identity or role, and settings are bounded', () => {
-  const values = normalizePartnerProfile({ name: ' Maya ', businessName: ' Valley ', city: ' Srinagar ', role: 'ADMIN', email: 'forged' });
+  const values = normalizePartnerProfile({ name: ' Maya ', businessName: ' Valley ', city: ' Kochi ', role: 'ADMIN', email: 'forged' });
   assert.equal(values.name, 'Maya');
   assert.equal(values.role, undefined);
   assert.equal(values.email, undefined);

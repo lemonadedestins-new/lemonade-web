@@ -17,14 +17,14 @@ test('customer services and authentication boundaries integrate', async t => {
     await trips.getState().loadTrips();
     assert.equal(trips.getState().loaded, true);
     assert.equal(trips.getState().trips.length, 3);
-    const trip = await tripApi.get('kashmir-escape');
+    const trip = await tripApi.get('munnar-escape');
     assert.equal(trip.quotes.length, 2);
     assert.equal(trip.quotes[0].itinerary.length, 5);
-    assert.equal(trip.quotes[0].plannerName, 'Valley & Beyond');
+    assert.equal(trip.quotes[0].plannerName, 'Green Trail Holidays');
   });
   await t.test('drafts resume and submit once, with field validation errors preserved', async () => {
-    const draft = await trips.getState().saveTrip({ destination: 'Kerala', status: 'DRAFT' });
-    assert.equal((await tripApi.get(draft.id)).destination, 'Kerala');
+    const draft = await trips.getState().saveTrip({ destination: 'Alleppey', status: 'DRAFT' });
+    assert.equal((await tripApi.get(draft.id)).destination, 'Alleppey');
     await assert.rejects(tripApi.update(draft.id, { ...draft, status: 'SUBMITTED' }), error => error.response.status === 422 && !!error.response.data.fields.startDate);
     const submitted = await trips.getState().saveTrip({ ...draft, departureCity: 'Chennai', startDate: '2099-06-15', endDate: '2099-06-20', budget: 50000, tripType: 'Family', status: 'SUBMITTED' }, draft.id);
     assert.equal(submitted.status, 'SUBMITTED');
@@ -51,7 +51,7 @@ test('customer services and authentication boundaries integrate', async t => {
     await auth.getState().register({ name: 'Test Traveler', email: 'test-traveler@example.test', password: 'TravelDemo1!', role: 'CUSTOMER' });
     await trips.getState().loadTrips();
     assert.deepEqual(trips.getState().trips, []);
-    await assert.rejects(tripApi.get('kashmir-escape'), error => error.response.status === 404);
+    await assert.rejects(tripApi.get('munnar-escape'), error => error.response.status === 404);
     await auth.getState().logout();
   });
   await t.test('late responses cannot repopulate the store after logout', async () => {
@@ -75,7 +75,7 @@ test('customer services and authentication boundaries integrate', async t => {
     await auth.getState().logout();
   });
   await t.test('return paths accept customer routes and reject foreign or malformed destinations', () => {
-    for (const path of ['/customer/trips', '/customer/trips/new?destination=Bali', '/customer/trips/kashmir-escape/edit', '/customer/profile']) assert.equal(safeReturnPath(path, 'CUSTOMER'), path);
+    for (const path of ['/customer/trips', '/customer/trips/new?destination=Munnar', '/customer/trips/munnar-escape/edit', '/customer/profile']) assert.equal(safeReturnPath(path, 'CUSTOMER'), path);
     for (const path of ['//example.com', '/customer/../partner/dashboard', '/customer/trips/../../login', '/partner/dashboard', '/customer/trips\\example.com', 'https://example.com']) assert.equal(safeReturnPath(path, 'CUSTOMER'), null);
   });
 });

@@ -19,7 +19,7 @@ export function createPartnerRepository(records) {
   const presentQuote = quote => ({ ...structuredClone(quote), status: quoteStatus(quote), canEdit: quote.status === QUOTE_STATUS.DRAFT && isOpen(records.get(quote.leadId)) });
   function presentLead(user, trip) {
     const quote = ownFor(user, trip.id);
-    return { ...normalizeTrip(trip), id: trip.id, tripStatus: trip.status, createdAt: trip.createdAt, updatedAt: trip.updatedAt, isSample: !!trip.isSample, status: !isOpen(trip) ? 'CLOSED' : !quote ? 'NEW' : quote.status === QUOTE_STATUS.DRAFT ? 'DRAFT' : 'QUOTED', canQuote: isOpen(trip) && (!quote || quote.status === QUOTE_STATUS.DRAFT), quote: quote ? presentQuote(quote) : null };
+    return { ...normalizeTrip(trip), id: trip.id, tripStatus: trip.status, createdAt: trip.createdAt, updatedAt: trip.updatedAt, isSample: !!trip.isSample, packageSelection: trip.packageSelection ? structuredClone(trip.packageSelection) : undefined, status: !isOpen(trip) ? 'CLOSED' : !quote ? 'NEW' : quote.status === QUOTE_STATUS.DRAFT ? 'DRAFT' : 'QUOTED', canQuote: isOpen(trip) && (!quote || quote.status === QUOTE_STATUS.DRAFT), quote: quote ? presentQuote(quote) : null };
   }
   return {
     listLeads(user) { authorize(user); return [...records.values()].filter(trip => trip.status !== TRIP_STATUS.DRAFT && trip.assignedPartnerIds?.includes(user.id)).map(trip => presentLead(user, trip)).sort((a, b) => b.createdAt.localeCompare(a.createdAt)); },

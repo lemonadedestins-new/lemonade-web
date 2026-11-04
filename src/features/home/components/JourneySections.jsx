@@ -15,31 +15,32 @@ import {
 import Button from '../../../components/common/Button';
 import { registrationPath, ROLES } from '../../../constants/routes';
 import { destinations, imageUrl } from '../data/destinations';
-import { usePlanTripPath } from '../../../hooks/usePlanTripPath';
+import { ROLES as ACCOUNT_ROLES } from '../../../constants/routes';
+import { useAuthStore } from '../../auth/store/authStore';
 
 const steps = [
-  { icon: MessageSquareText, title: 'Tell us your travel dreams', text: 'The where, the when, and the little things that matter to you.' },
-  { icon: UsersRound, title: 'Meet the right experts', text: 'We connect you with planners who understand your kind of trip.' },
-  { icon: Files, title: 'Discover your options', text: 'Receive thoughtful, personalized plans made around you.' },
-  { icon: CircleCheck, title: 'Find your perfect fit', text: 'Compare the possibilities and choose what feels right.' },
-  { icon: Plane, title: 'Make some memories', text: 'Pack your curiosity. Your next chapter is waiting.' },
+  { icon: MessageSquareText, title: 'Pick your place', text: 'Start with a South Indian destination, from Munnar to Pondicherry.' },
+  { icon: UsersRound, title: 'Explore the packages', text: 'See the journeys already offered by planners for that destination.' },
+  { icon: Files, title: 'Compare the details', text: 'Look at per-person prices, itineraries, stays, and inclusions.' },
+  { icon: CircleCheck, title: 'Meet your planner', text: 'Get to know the business and discover their other packages.' },
+  { icon: Plane, title: 'Start a conversation', text: 'Share your dates and preferences with the planner offering your package.' },
 ];
 const benefits = [
   { icon: SlidersHorizontal, title: 'Personal, from the start', text: 'Your interests, your pace, your budget. A journey shaped around you.' },
   { icon: UsersRound, title: 'More than one perspective', text: 'Discover possibilities from travel experts with different specialties.' },
   { icon: Files, title: 'Clarity before you choose', text: 'See what each plan includes, so you can decide with confidence.' },
   { icon: BadgeCheck, title: 'People you can trust', text: 'Connect with travel planners who bring care and local expertise.' },
-  { icon: Compass, title: 'Less back and forth', text: 'Share your wish list once. Let the right planners take it from there.' },
+  { icon: Compass, title: 'A clearer starting point', text: 'See what is already available, then ask about the details that matter to you.' },
   { icon: HeartHandshake, title: 'A little help along the way', text: 'Support through the enquiry process, from first hello to finding your fit.' },
 ];
 const stories = [
-  { quote: 'We wanted a honeymoon that felt like us. Quiet beaches, great food, and absolutely no rushed mornings.', name: 'Aarav & Meera', trip: 'Dreaming of the Maldives', initials: 'AM', color: '#e7e3d2' },
-  { quote: 'Traveling with the whole family means a lot of little details. Having someone who gets that makes all the difference.', name: 'Priya S.', trip: 'A family escape to Kerala', initials: 'PS', color: '#dfe7d8' },
-  { quote: 'I love the adventure. I just don’t love opening twenty tabs to plan it. The right local expert changes everything.', name: 'Rohan K.', trip: 'An adventure in Bali', initials: 'RK', color: '#e9dfcf' },
+  { quote: 'We wanted a honeymoon that felt like us. Quiet beaches, great food, and absolutely no rushed mornings.', name: 'Aarav & Meera', trip: 'Dreaming of Munnar', initials: 'AM', color: '#e7e3d2' },
+  { quote: 'Traveling with the whole family means a lot of little details. Having someone who gets that makes all the difference.', name: 'Priya S.', trip: 'A family escape to Alleppey', initials: 'PS', color: '#dfe7d8' },
+  { quote: 'I love the adventure. I just don’t love opening twenty tabs to plan it. The right local expert changes everything.', name: 'Rohan K.', trip: 'An escape to Coorg', initials: 'RK', color: '#e9dfcf' },
 ];
 
 export function HowItWorks() {
-  const planPath = usePlanTripPath();
+  const planPath = '/explore';
   return (
     <section className="section how-section" id="how-it-works">
       <div className="container">
@@ -57,7 +58,7 @@ export function HowItWorks() {
             </li>
           ))}
         </ol>
-        <div className="centered"><Button to={planPath} arrow>Let’s plan something wonderful</Button></div>
+        <div className="centered"><Button to={planPath} arrow>Find your next package</Button></div>
       </div>
     </section>
   );
@@ -88,17 +89,19 @@ export function WhyLemonade() {
 }
 
 export function TravelPartnerCta() {
+  const role = useAuthStore(state => state.role);
+  const partnerPath = role === ACCOUNT_ROLES.BUSINESS_OWNER ? '/partner/packages/new' : registrationPath(ROLES.BUSINESS_OWNER);
   return (
     <section className="partner-section container" id="travel-partners">
       <div className="partner-copy">
         <p className="eyebrow">FOR THE PEOPLE WHO KNOW THE WAY</p>
-        <h2>You make great trips.<br />Let’s make great connections.</h2>
-        <p>Independent planner or travel agency? Bring your expertise to travelers who are looking for exactly what you do best.</p>
-        <Button to={registrationPath(ROLES.BUSINESS_OWNER)} variant="lemon" arrow>Become a travel partner</Button>
-        <span>Relevant enquiries. Personal connections. New possibilities.</span>
+        <h2>You have the packages.<br />Let travelers find them.</h2>
+        <p>Independent planner or travel agency? List your South India packages, share your itineraries, and receive enquiries from travelers exploring your destinations.</p>
+        <Button to={partnerPath} variant="lemon" arrow>List your travel packages</Button>
+        <span>Your packages. Your business profile. Relevant enquiries.</span>
       </div>
       <div className="partner-photo">
-        <img src={imageUrl(destinations[1], 1000)} alt="Terraced rice fields and tropical greenery in Bali" width="1000" height="1100" loading="lazy" />
+        <img src={imageUrl(destinations[1], 1000)} alt={destinations[1].alt} width="1000" height="1100" loading="lazy" />
         <div><Compass size={24} /><span>Good people.<br />Extraordinary places.</span></div>
       </div>
     </section>
@@ -138,7 +141,7 @@ export function Testimonials() {
 }
 
 export function FinalCta() {
-  const planPath = usePlanTripPath();
+  const planPath = '/explore';
   return (
     <section className="final-cta">
       <div className="container">

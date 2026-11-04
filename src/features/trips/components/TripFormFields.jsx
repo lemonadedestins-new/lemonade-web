@@ -1,3 +1,4 @@
+import { destinations } from '../../home/data/destinations';
 import TextField from '@mui/material/TextField';
 import MenuItem from '@mui/material/MenuItem';
 import { Controller } from 'react-hook-form';
@@ -14,7 +15,7 @@ function SelectField({ name, label, options, control, errors }) {
 export function EssentialsFields({ register, errors, startDate }) {
   const shared = { register, errors };
   return <div className="trip-form-fields">
-    <TripField {...shared} name="destination" label="Where would you like to go?" required placeholder="A country, a region, a little escape…" autoComplete="off" helperText="For example, Kashmir, Bali, or the Italian coast." slotProps={{ htmlInput: { maxLength: 100 } }} />
+    <TripField {...shared} name="destination" label="Where would you like to go?" required select slotProps={{ select: { native: true }, inputLabel: { shrink: true } }} helperText="We currently offer these South Indian destinations."><option value="">Choose a destination</option>{destinations.map(place => <option key={place.id} value={place.name}>{place.name}, {place.country}</option>)}</TripField>
     <TripField {...shared} name="departureCity" label="Departure city" required placeholder="Where your journey begins" autoComplete="address-level2" slotProps={{ htmlInput: { maxLength: 100 } }} />
     <div className="form-two-columns"><TripField {...shared} name="startDate" label="Start date" type="date" required slotProps={{ inputLabel: { shrink: true }, htmlInput: { min: dateInput() } }} /><TripField {...shared} name="endDate" label="End date" type="date" required slotProps={{ inputLabel: { shrink: true }, htmlInput: { min: startDate || dateInput() } }} /></div>
     <div className="form-section-label"><h3>Who’s coming along?</h3><p>Include everyone in your travel party.</p></div>

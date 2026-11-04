@@ -1,3 +1,4 @@
+import { destinations } from '../home/data/destinations.js';
 import { ACCOMMODATIONS, DEFAULT_TRIP, INTERESTS, TRANSPORT, TRIP_TYPES } from '../../constants/trips.js';
 
 export function dateInput(date = new Date()) {
@@ -23,6 +24,7 @@ export function validateTrip(input, { draft = false, today = dateInput() } = {})
     if ((!draft || key === 'destination') && v[key].length < 2) errors[key] = `Enter your ${label} (at least 2 characters).`;
     if (v[key].length > max) errors[key] = `Keep your ${label} under ${max + 1} characters.`;
   }
+  if (v.destination && !destinations.some(place => place.name.toLowerCase() === v.destination.toLowerCase())) errors.destination = 'Choose Munnar, Ooty, Coorg, Alleppey, Hampi, or Pondicherry.';
   if ((!draft || v.startDate) && !isValidDate(v.startDate)) errors.startDate = 'Choose a valid start date.';
   else if (v.startDate && v.startDate < today) errors.startDate = 'Choose today or a future date.';
   if ((!draft || v.endDate) && !isValidDate(v.endDate)) errors.endDate = 'Choose a valid end date.';

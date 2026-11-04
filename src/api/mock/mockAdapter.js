@@ -5,8 +5,15 @@ import { createSampleTrips } from './tripSeed';
 import { ACCOMMODATIONS, TRANSPORT } from '../../constants/trips';
 import { createPartnerSeeds } from './partnerSeed';
 import { normalizePartnerProfile, validatePartnerProfile, validatePartnerSettings } from '../../features/partner/partnerModel';
+import { createPackageRepository } from './packageRepository';
+import { createPackageSeeds, samplePlanners } from './packageSeed';
+import { destinationById } from '../../features/home/data/destinations';
 
-const trips = createTripRepository([...createSampleTrips(), ...createPartnerSeeds()], { defaultPartnerIds: ['demo-partner'] });
+const packages = createPackageRepository(createPackageSeeds(), samplePlanners);
+const trips = createTripRepository([...createSampleTrips(), ...createPartnerSeeds()], {
+  getPackage: id => packages.get(id),
+  resolvePartnerIds: destination => [...new Set(packages.list().filter(item => destinationById(item.destinationId)?.name.toLowerCase() === destination.toLowerCase()).map(item => item.plannerId))],
+});
 
 // Deliberately ephemeral: mock accounts, password digests, and sessions reset on reload.
 // This is a simulation, never a production identity store or authorization boundary.
@@ -24,7 +31,7 @@ async function addAccount(user, password) {
 async function seed() {
   if (!seedPromise) seedPromise = Promise.all([
     addAccount({ id: 'demo-customer', name: 'Alex Morgan', email: 'customer@lemonade.demo', role: ROLES.CUSTOMER }, 'TravelDemo1!'),
-    addAccount({ id: 'demo-partner', name: 'Maya Sharma', businessName: 'Valley & Beyond', city: 'Srinagar', specialties: 'Kashmir, Kerala & island escapes', description: 'Thoughtful journeys, local connections, and room to explore at your own pace.', email: 'partner@lemonade.demo', role: ROLES.BUSINESS_OWNER, partnerSettings: { validityDays: 7, defaultTerms: 'Availability is subject to confirmation. Please request cancellation terms before booking.' } }, 'TravelDemo1!'),
+    ...samplePlanners.map((planner, index) => addAccount({ ...planner, email: index === 0 ? 'partner@lemonade.demo' : `${planner.id}@lemonade.demo`, role: ROLES.BUSINESS_OWNER, partnerSettings: { validityDays: 7, defaultTerms: 'Availability is subject to confirmation. Please request cancellation terms before booking.' } }, 'TravelDemo1!')),
   ]);
   return seedPromise;
 }
@@ -44,6 +51,25 @@ export async function mockAdapter(config) {
   const path = config.url;
   const data = typeof config.data === 'string' ? JSON.parse(config.data) : config.data || {};
   const email = String(data.email || '').trim().toLowerCase();
+  if (path.startsWith('/packages') || path.startsWith('/planners/')) {
+    try {
+      if (path === '/packages' && config.method === 'get') return response(config, { packages: packages.list() });
+      const item = path.match(/^\/packages\/([^/]+)$/);
+      if (item && config.method === 'get') return response(config, { package: packages.get(decodeURIComponent(item[1])) });
+      const planner = path.match(/^\/planners\/([^/]+)$/);
+      if (planner && config.method === 'get') return response(config, { planner: packages.planner(decodeURIComponent(planner[1])) });
+      const enquiry = path.match(/^\/packages\/([^/]+)\/enquiries$/);
+      if (enquiry && config.method === 'post') {
+        const userId = tokens.get(String(config.headers.Authorization || '').replace('Bearer ', ''));
+        const user = [...accounts.values()].find(account => account.user.id === userId)?.user;
+        if (!user || user.id !== currentUserId) return fail(config, 401, 'SESSION_EXPIRED');
+        return response(config, { trip: trips.enquire(user, decodeURIComponent(enquiry[1]), data) }, 201);
+      }
+    } catch (error) {
+      if (!(error instanceof TripRequestError)) throw error;
+      throw new AxiosError('Request failed', AxiosError.ERR_BAD_REQUEST, config, {}, response(config, { code: error.code, fields: error.fields }, error.status));
+    }
+  }
   if (path === '/auth/login' && config.method === 'post') {
     const account = accounts.get(email);
     if (!account || await digest(String(data.password || ''), account.salt) !== account.digest) return fail(config, 401, 'INVALID_CREDENTIALS');
@@ -106,6 +132,7 @@ export async function mockAdapter(config) {
         const fields = validatePartnerProfile(values);
         if (Object.keys(fields).length) throw new TripRequestError(422, 'INVALID_INPUT', fields);
         account.user = { ...user, ...values };
+        packages.syncPlanner(account.user);
         return response(config, { user: { ...account.user } });
       }
       if (path === '/partner/settings' && config.method === 'patch') {
@@ -115,6 +142,11 @@ export async function mockAdapter(config) {
         account.user = { ...user, partnerSettings: values };
         return response(config, { user: { ...account.user } });
       }
+      if (path === '/partner/packages' && config.method === 'get') return response(config, { packages: packages.listOwned(user) });
+      if (path === '/partner/packages' && config.method === 'post') return response(config, { package: packages.save(user, data) }, 201);
+      const listing = path.match(/^\/partner\/packages\/([^/]+)$/);
+      if (listing && config.method === 'get') return response(config, { package: packages.getOwned(user, decodeURIComponent(listing[1])) });
+      if (listing && config.method === 'patch') return response(config, { package: packages.save(user, data, decodeURIComponent(listing[1])) });
       if (path === '/partner/leads' && config.method === 'get') return response(config, { leads: trips.partner.listLeads(user) });
       if (path === '/partner/quotes' && config.method === 'get') return response(config, { quotes: trips.partner.listQuotes(user) });
       const lead = path.match(/^\/partner\/leads\/([^/]+)$/);
